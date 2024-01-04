@@ -33,7 +33,7 @@ The two variables you must to modify are:
 1. Clone this repo
 
    ```
-   git clone https://github.com/looker-open-source/vertex-ai-actions
+   git clone https://github.com/Kriz182/vertex-ai-actions-postmarker
    cd vertex-ai-actions/
    ```
 
