@@ -1,8 +1,7 @@
 import json
 import os
 from flask import Response
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+from postmarker.core import PostmarkClient
 from icon import icon_data_uri
 from utils import authenticate, handle_error, list_to_html, safe_cast, sanitize_and_load_json_str
 from palm_api import model_with_limit_and_backoff, reduce, MODEL_TYPES, DEFAULT_MODEL_TYPE
@@ -229,21 +228,20 @@ def action_execute(request):
 
     if body == '':
         body = 'No response from model. Try asking a more specific question.'
-
     try:
-        # todo - make email prettier
-        message = Mail(
-            from_email=os.environ.get('EMAIL_SENDER'),
-            to_emails=action_params['email'],
-            subject='Your GenAI Report from Looker',
-            html_content=body
-        )
+        postmark = PostmarkClient(server_token=os.environ.get('SENDGRID_API_KEY'))
 
-        sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
-        response = sg.send(message)
-        print('Message status code: {}'.format(response.status_code))
+    # Construct the message
+        message = {
+        "From": os.environ.get('EMAIL_SENDER'),
+        "To": action_params['email'],
+        "Subject": 'Your GenAI Report from Looker',
+        "HtmlBody": body
+        }
+
+    # Send the message
+        response = postmark.emails.send(**message)
+        print('Message sent with ID: {}'.format(response['MessageID']))
     except Exception as e:
-        error = handle_error('SendGrid Error: ' + e.message, 400)
-        return error
-
-    return Response(status=200, mimetype='application/json')
+        error = handle_error('Postmark Error: ' + str(e), 400)
+    return error
