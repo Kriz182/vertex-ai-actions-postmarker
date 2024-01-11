@@ -244,4 +244,6 @@ def action_execute(request):
         print('Message sent with ID: {}'.format(response['MessageID']))
     except Exception as e:
         error = handle_error('Postmark Error: ' + str(e), 400)
-    return error
+        return error
+
+    return Response(status=200, mimetype='application/json')
